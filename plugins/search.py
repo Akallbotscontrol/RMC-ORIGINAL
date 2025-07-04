@@ -85,7 +85,7 @@ async def search(bot, message):
             InlineKeyboardButton("📬 Request Admin", callback_data=f"req_{message.id}")
         ]]
         sent = await message.reply_photo(
-            photo="https://www.imghippo.com/i/CrF9619b.jpg",
+            photo="https://envs.sh/2tj.jpg",
             caption=f"❌ No results found for: <code>{query}</code>\nTry different keywords or ask admin.",
             reply_markup=InlineKeyboardMarkup(btn)
         )
