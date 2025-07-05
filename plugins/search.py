@@ -5,6 +5,7 @@ from utils import *
 from plugins.generate import database
 from pyrogram.errors import FloodWait
 import asyncio
+from urllib.parse import quote_plus  # ✅ Added for safe URL encoding
 
 # Commands to exclude from search
 IGNORED_COMMANDS = [
@@ -74,12 +75,11 @@ async def search(bot, message):
     if results:
         sent = await message.reply(
             f"<u>Here are your results {message.from_user.mention} 👇</u>\n\n🔎 Powered By {CHANNEL}\n\n{results}",
-
             disable_web_page_preview=True
         )
         asyncio.create_task(delete_after_delay(sent))
     else:
-        clean = query.replace(" ", "+")
+        clean = quote_plus(query)  # ✅ URL-safe encoding
         btn = [[
             InlineKeyboardButton("🔍 Google", url=f"https://www.google.com/search?q={clean}"),
             InlineKeyboardButton("📬 Request Admin", callback_data=f"req_{message.id}")
@@ -103,7 +103,6 @@ async def retry(bot, update):
             self.chat.id = chat_id
 
     dummy = DummyMessage(update.from_user, update.message.chat)
-
     if not await force_sub(bot, dummy):
         return await update.answer("❌ You still haven’t joined!", show_alert=True)
 
@@ -116,4 +115,5 @@ async def retry(bot, update):
     fake = update.message
     fake.text = query
     fake.from_user = update.from_user
+
     await search(bot, fake)
