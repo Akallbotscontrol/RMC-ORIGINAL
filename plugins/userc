@@ -1,7 +1,10 @@
 from pyrogram import Client, filters
+from pyrogram.enums import ParseMode
+from pyrogram.types import Message
 from info import ADMIN
 from utils import get_users
-from pyrogram.types import Message
+import io
+import html
 
 @Client.on_message(filters.command("userc") & filters.user(ADMIN))
 async def user_counter(bot, message: Message):
@@ -10,19 +13,21 @@ async def user_counter(bot, message: Message):
     if total == 0:
         return await message.reply("😕 No users found in database.")
 
+    users = sorted(users, key=lambda x: x.get('name', 'Unknown').lower())
     text = f"📊 Total Users: <b>{total}</b>\n\n"
+
     for user in users:
         uid = user['_id']
         name = user.get('name', 'Unknown')
-        text += f"• <code>{name}</code> | <code>{uid}</code>\n"
+        text += f"• <code>{html.escape(name)}</code> | <code>{uid}</code>\n"
 
     if len(text) > 4096:
-        # text too long for Telegram, send as file
-        with open("/mnt/data/users.txt", "w", encoding="utf-8") as f:
-            for user in users:
-                uid = user['_id']
-                name = user.get('name', 'Unknown')
-                f.write(f"{name} - {uid}\n")
-        await message.reply_document("/mnt/data/users.txt", caption=f"📦 Total Users: {total}")
+        output = io.StringIO()
+        for user in users:
+            uid = user['_id']
+            name = user.get('name', 'Unknown')
+            output.write(f"{name} - {uid}\n")
+        output.seek(0)
+        await message.reply_document(output, caption=f"📦 Total Users: {total}", filename="users.txt")
     else:
-        await message.reply(text)
+        await message.reply(text, parse_mode=ParseMode.HTML)
